@@ -4,11 +4,11 @@ import { Menu, X, Send } from "lucide-react";
 
 const navItems = [
   { label: "Home", to: "/" },
-  { label: "About", to: "/" },
-  { label: "Services", to: "/" },
-  { label: "Developers", to: "/" },
-  { label: "Support", to: "/" },
-  { label: "Contact", to: "/" },
+  { label: "About", to: "/about" },
+  { label: "Services", to: "/services" },
+  { label: "Developers", to: "/developers" },
+  { label: "Support", to: "/support" },
+  { label: "Contact", to: "/contact" },
 ] as const;
 
 export function Header() {
