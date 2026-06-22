@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu, X, Send } from "lucide-react";
-
-const navItems = [
-  { label: "Home", to: "/" },
-  { label: "About", to: "/about" },
-  { label: "Services", to: "/services" },
-  { label: "Developers", to: "/developers" },
-  { label: "Support", to: "/support" },
-  { label: "Contact", to: "/contact" },
-] as const;
+import { useTranslation } from "@/lib/i18n/context";
 
 export function Header() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const navItems = [
+    { label: t("header.home"), to: "/" },
+    { label: t("header.about"), to: "/about" },
+    { label: t("header.services"), to: "/services" },
+    { label: t("header.developers"), to: "/developers" },
+    { label: t("header.support"), to: "/support" },
+    { label: t("header.contact"), to: "/contact" },
+  ] as const;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -35,7 +37,7 @@ export function Header() {
           </span>
           <Send className="h-4 w-4 -rotate-12 fill-primary text-primary" />
           <span className="ml-1 hidden text-[10px] font-semibold text-muted-foreground sm:inline">
-            by <span className="font-bold text-foreground">IME</span>
+            {t("header.by")} <span className="font-bold text-foreground">{t("header.ime")}</span>
           </span>
         </Link>
 
@@ -53,13 +55,13 @@ export function Header() {
             to="/login"
             className="text-sm font-semibold text-foreground/80 hover:text-primary"
           >
-            Login
+            {t("header.login")}
           </Link>
           <Link
             to="/signup"
             className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-elevated transition-transform hover:scale-105"
           >
-            Sign up
+            {t("header.signUp")}
           </Link>
         </nav>
 
@@ -90,14 +92,14 @@ export function Header() {
               onClick={() => setOpen(false)}
               className="mt-2 rounded-full border border-primary px-5 py-3 text-center text-base font-semibold text-primary"
             >
-              Login
+              {t("header.login")}
             </Link>
             <Link
               to="/signup"
               onClick={() => setOpen(false)}
               className="mt-2 rounded-full bg-primary px-5 py-3 text-center text-base font-semibold text-primary-foreground"
             >
-              Sign up
+              {t("header.signUp")}
             </Link>
           </nav>
         </div>

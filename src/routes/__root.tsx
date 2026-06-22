@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 
 import { AuthProvider } from "@/lib/auth";
+import { LanguageProvider } from "@/lib/i18n/context";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -125,8 +126,10 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Outlet />
-        <Toaster />
+        <LanguageProvider>
+          <Outlet />
+          <Toaster />
+        </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

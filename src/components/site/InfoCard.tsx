@@ -1,6 +1,8 @@
 import { Send, Apple, Play } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/context";
 
 export function InfoCard() {
+  const { t } = useTranslation();
   return (
     <section className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="rounded-3xl bg-surface-dark px-6 py-10 text-surface-dark-foreground shadow-elevated sm:px-10 sm:py-14">
@@ -14,14 +16,11 @@ export function InfoCard() {
 
           <div className="flex-1 text-center lg:text-left">
             <p className="text-base leading-relaxed text-white/90 sm:text-lg">
-              Khalti offers a wide range of payment services and convenient way
-              to transfer money from wallet-to-wallet, pay utility bills and
-              make purchases online or offline instantly with just a few easy
-              clicks.
+              {t("infoCard.description")}
             </p>
 
             <p className="mt-8 text-center text-sm text-white/70 lg:text-left">
-              Available on
+              {t("infoCard.availableOn")}
             </p>
             <div className="mt-3 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
               <a
@@ -31,10 +30,10 @@ export function InfoCard() {
                 <Apple className="h-6 w-6 text-white" />
                 <div className="text-left">
                   <div className="text-[10px] leading-none text-white/70">
-                    Download on the
+                    {t("infoCard.downloadOn")}
                   </div>
                   <div className="text-base font-semibold leading-tight text-white">
-                    App Store
+                    {t("infoCard.appStore")}
                   </div>
                 </div>
               </a>
@@ -45,10 +44,10 @@ export function InfoCard() {
                 <Play className="h-6 w-6 fill-emerald-400 text-emerald-400" />
                 <div className="text-left">
                   <div className="text-[10px] leading-none text-white/70">
-                    GET IT ON
+                    {t("infoCard.getItOn")}
                   </div>
                   <div className="text-base font-semibold leading-tight text-white">
-                    Google Play
+                    {t("infoCard.googlePlay")}
                   </div>
                 </div>
               </a>

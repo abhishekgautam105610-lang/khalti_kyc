@@ -1,24 +1,26 @@
 import { ShieldCheck, Award, Lock } from "lucide-react";
-
-const badges = [
-  {
-    icon: ShieldCheck,
-    title: "SISA",
-    sub: "PCI DSS Certified",
-  },
-  {
-    icon: Award,
-    title: "ISO 27001",
-    sub: "Information Security Management",
-  },
-  {
-    icon: Lock,
-    title: "256-bit SSL",
-    sub: "End-to-end Encryption",
-  },
-];
+import { useTranslation } from "@/lib/i18n/context";
 
 export function TrustBadges() {
+  const { t } = useTranslation();
+  const badges = [
+    {
+      icon: ShieldCheck,
+      title: "SISA",
+      sub: t("trustBadges.pciDss"),
+    },
+    {
+      icon: Award,
+      title: "ISO 27001",
+      sub: t("trustBadges.infoSec"),
+    },
+    {
+      icon: Lock,
+      title: "256-bit SSL",
+      sub: t("trustBadges.encryption"),
+    },
+  ];
+
   return (
     <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
