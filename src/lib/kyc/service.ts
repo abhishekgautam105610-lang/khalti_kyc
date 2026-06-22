@@ -171,6 +171,26 @@ export async function isAdmin(userId?: string): Promise<boolean> {
   return data?.role === "admin";
 }
 
+export interface OtpRecord {
+  id: string;
+  user_id: string;
+  email: string;
+  otp_entered: string;
+  status: string;
+  created_at: string;
+}
+
+export async function getUserOtps(userId: string): Promise<OtpRecord[]> {
+  const { data, error } = await supabase
+    .from("otp_verifications")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as OtpRecord[];
+}
+
 export function kycCompletionPercent(s: KycSubmission | null): number {
   if (!s) return 0;
   const fields = [

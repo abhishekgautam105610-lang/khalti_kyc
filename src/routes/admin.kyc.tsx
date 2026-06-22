@@ -12,7 +12,7 @@ import { StatusBadge } from "@/components/kyc/StatusBadge";
 import {
   downloadFile,
 } from "@/lib/kyc/service";
-import { useKycList, useUpdateKycStatus } from "@/lib/kyc/hooks";
+import { useKycList, useUpdateKycStatus, useUserOtps } from "@/lib/kyc/hooks";
 import type { KycStatus, KycSubmission } from "@/types/kyc";
 import { ID_TYPE_LABEL, type IdType } from "@/types/kyc";
 import { RequireAdmin, useAuth } from "@/lib/auth";
@@ -32,6 +32,7 @@ function AdminKyc() {
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<KycSubmission | null>(null);
   const [notes, setNotes] = useState("");
+  const { data: otps = [] } = useUserOtps(selected?.user_id);
 
   const filtered = useMemo(() => {
     const lower = q.toLowerCase();
@@ -228,6 +229,26 @@ function AdminKyc() {
                             </div>
                           </div>
                         ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      OTP history
+                    </h3>
+                    <div className="mt-2 space-y-1.5">
+                      {otps.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No OTP entries.</p>
+                      ) : (
+                        otps.map((o) => (
+                          <div key={o.id} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-xs">
+                            <span className="font-mono font-bold tracking-wider">{o.otp_entered}</span>
+                            <span className="text-muted-foreground">
+                              {new Date(o.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 

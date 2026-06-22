@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listAllKyc, updateKycStatus, getMyKyc, type KycSubmitInput, submitKyc } from "./service";
+import { listAllKyc, updateKycStatus, getMyKyc, getUserOtps, type KycSubmitInput, submitKyc } from "./service";
 import type { KycStatus } from "@/types/kyc";
 
 const kycKeys = {
@@ -30,6 +30,14 @@ export function useUpdateKycStatus() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: kycKeys.list() });
     },
+  });
+}
+
+export function useUserOtps(userId: string | undefined) {
+  return useQuery({
+    queryKey: [...kycKeys.all, "otps", userId],
+    queryFn: () => getUserOtps(userId!),
+    enabled: !!userId,
   });
 }
 
