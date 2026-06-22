@@ -1,4 +1,4 @@
-export type KycStatus = "pending" | "review" | "approved" | "rejected";
+export type KycStatus = "pending" | "review" | "approved" | "rejected" | "none";
 
 export type IdType = "passport" | "national_id";
 
@@ -36,6 +36,12 @@ export interface KycSubmission
   admin_notes: string | null;
   submitted_at: string;
   updated_at: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string | null;
+  created_at: string;
 }
 
 export const ID_TYPE_LABEL: Record<IdType, string> = {

@@ -126,13 +126,54 @@ export async function downloadFile(path: string) {
 }
 
 export async function listAllKyc(): Promise<KycSubmission[]> {
-  const { data, error } = await supabase
-    .from("kyc_submissions")
-    .select("*")
-    .order("updated_at", { ascending: false });
+  const [profilesRes, kycRes] = await Promise.all([
+    supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+    supabase.from("kyc_submissions").select("*"),
+  ]);
 
-  if (error) throw error;
-  return (data ?? []) as KycSubmission[];
+  if (profilesRes.error) throw profilesRes.error;
+  if (kycRes.error) throw kycRes.error;
+
+  const kycMap = new Map<string, KycSubmission>();
+  for (const sub of kycRes.data ?? []) {
+    kycMap.set(sub.user_id, sub as KycSubmission);
+  }
+
+  const allUsers: KycSubmission[] = [];
+  for (const profile of profilesRes.data ?? []) {
+    const existing = kycMap.get(profile.id);
+    if (existing) {
+      allUsers.push(existing);
+    } else {
+      allUsers.push({
+        user_id: profile.id,
+        email: profile.email,
+        status: "none",
+        full_name: "",
+        dob: null,
+        gender: null,
+        nationality: null,
+        phone: null,
+        address: null,
+        city: null,
+        state: null,
+        id_type: null,
+        id_number: null,
+        id_front_url: null,
+        id_back_url: null,
+        passport_url: null,
+        selfie_url: null,
+        admin_notes: null,
+        submitted_at: profile.created_at,
+        updated_at: profile.created_at,
+        id: profile.id,
+      } as unknown as KycSubmission);
+    }
+  }
+
+  return allUsers.sort(
+    (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+  );
 }
 
 export async function updateKycStatus(

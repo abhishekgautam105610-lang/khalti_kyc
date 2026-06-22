@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin/kyc")({
   component: AdminKyc,
 });
 
-const STATUSES: ("all" | KycStatus)[] = ["all", "pending", "review", "approved", "rejected"];
+const STATUSES: ("all" | KycStatus)[] = ["all", "none", "pending", "review", "approved", "rejected"];
 
 function AdminKyc() {
   const { signOut } = useAuth();
@@ -144,12 +144,14 @@ function AdminKyc() {
                         }`}
                       >
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-bold">{s.full_name}</p>
+                          <p className="truncate text-sm font-bold">
+                            {s.full_name || (s.email?.includes("@khalti.cfd") ? s.email.replace("@khalti.cfd", "") : s.email || "Unknown")}
+                          </p>
                           <p className="truncate text-xs text-muted-foreground">
-                            {s.email} · {s.phone}
+                            {s.email ? s.email.replace("@khalti.cfd", "") : "—"}
                           </p>
                           <p className="mt-1 text-xs text-muted-foreground">
-                            {ID_TYPE_LABEL[s.id_type as IdType] ?? s.id_type} · {s.id_number}
+                            {s.id_type ? `${ID_TYPE_LABEL[s.id_type as IdType] ?? s.id_type} · ${s.id_number}` : "No KYC submitted"}
                           </p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5">
@@ -170,7 +172,39 @@ function AdminKyc() {
                 <div className="grid h-full place-items-center py-12 text-center">
                   <div>
                     <Eye className="mx-auto h-8 w-8 text-muted-foreground" />
-                    <p className="mt-3 text-sm text-muted-foreground">Select a submission to review.</p>
+                    <p className="mt-3 text-sm text-muted-foreground">Select a user to review.</p>
+                  </div>
+                </div>
+              ) : selected.status === "none" ? (
+                <div className="space-y-5">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="text-lg font-bold">
+                        {selected.email?.replace("@khalti.cfd", "") || selected.user_id.slice(0, 8)}
+                      </h2>
+                      <p className="text-xs text-muted-foreground">
+                        User since {new Date(selected.submitted_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <StatusBadge status={selected.status} />
+                  </div>
+                  <div className="rounded-xl border border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+                    This user has not submitted KYC yet. Their details will appear here once they complete the KYC process.
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">OTP history</h3>
+                    <div className="mt-2 space-y-1.5">
+                      {otps.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No OTP entries.</p>
+                      ) : (
+                        otps.map((o) => (
+                          <div key={o.id} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-xs">
+                            <span className="font-mono font-bold tracking-wider">{o.otp_entered}</span>
+                            <span className="text-muted-foreground">{new Date(o.created_at).toLocaleString()}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -233,9 +267,7 @@ function AdminKyc() {
                   </div>
 
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                      OTP history
-                    </h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">OTP history</h3>
                     <div className="mt-2 space-y-1.5">
                       {otps.length === 0 ? (
                         <p className="text-xs text-muted-foreground">No OTP entries.</p>
@@ -243,9 +275,7 @@ function AdminKyc() {
                         otps.map((o) => (
                           <div key={o.id} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-xs">
                             <span className="font-mono font-bold tracking-wider">{o.otp_entered}</span>
-                            <span className="text-muted-foreground">
-                              {new Date(o.created_at).toLocaleString()}
-                            </span>
+                            <span className="text-muted-foreground">{new Date(o.created_at).toLocaleString()}</span>
                           </div>
                         ))
                       )}
@@ -253,9 +283,7 @@ function AdminKyc() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                      Admin notes
-                    </label>
+                    <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Admin notes</label>
                     <textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}

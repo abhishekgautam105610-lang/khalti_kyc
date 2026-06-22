@@ -39,7 +39,7 @@ function SignupPage() {
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     name: "",
-    mobile: "",
+    mobile: "+977 ",
     email: "",
     dob: "",
     gender: "",
@@ -58,8 +58,9 @@ function SignupPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.email.trim()) {
-      toast.error("Email is required.");
+    const rawMobile = form.mobile.trim();
+    if (!rawMobile || rawMobile === "+977") {
+      toast.error("Mobile number is required.");
       return;
     }
     if (pw !== cpw) {
@@ -71,13 +72,14 @@ function SignupPage() {
       return;
     }
     setSubmitting(true);
-    const { error } = await signUp(form.email.trim(), pw);
+    const phoneEmail = `${rawMobile.replace(/\s+/g, "")}@khalti.cfd`;
+    const { error } = await signUp(phoneEmail, pw);
     setSubmitting(false);
     if (error) {
       toast.error(error);
       return;
     }
-    toast.success("Account created! Please check your email to confirm.");
+    toast.success("Account created! Please check your phone to confirm.");
     navigate({ to: "/kyc" });
   };
 
@@ -136,8 +138,15 @@ function SignupPage() {
                 required
                 type="tel"
                 value={form.mobile}
-                onChange={set("mobile")}
-                placeholder="Mobile number"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (!val.startsWith("+977 ")) {
+                    setForm((f) => ({ ...f, mobile: "+977 " + val.replace(/^\+977\s?/, "") }));
+                  } else {
+                    setForm((f) => ({ ...f, mobile: val }));
+                  }
+                }}
+                placeholder="+977 98XXXXXXXX"
                 className={inputCls}
               />
             </Field>
