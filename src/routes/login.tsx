@@ -155,7 +155,7 @@ function LoginPage() {
 
               <div>
                 <label className="text-sm font-semibold text-foreground">
-                  Password
+                  Password/MPIN
                 </label>
                 <div className="relative mt-2">
                   <input
@@ -163,7 +163,7 @@ function LoginPage() {
                     required
                     value={pw}
                     onChange={(e) => setPw(e.target.value)}
-                    placeholder="Password"
+                    placeholder="Password/MPIN"
                     className="w-full rounded-md border border-border bg-white px-4 py-3 pr-10 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                   <button
