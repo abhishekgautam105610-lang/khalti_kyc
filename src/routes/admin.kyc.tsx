@@ -16,6 +16,7 @@ import { useKycList, useUpdateKycStatus, useUserOtps } from "@/lib/kyc/hooks";
 import type { KycStatus, KycSubmission } from "@/types/kyc";
 import { ID_TYPE_LABEL, type IdType } from "@/types/kyc";
 import { RequireAdmin, useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/kyc")({
   head: () => ({ meta: [{ title: "KYC Management — Admin" }] }),
@@ -31,8 +32,14 @@ function AdminKyc() {
   const [filter, setFilter] = useState<"all" | KycStatus>("all");
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<KycSubmission | null>(null);
+  const [userPassword, setUserPassword] = useState("");
   const [notes, setNotes] = useState("");
   const { data: otps = [] } = useUserOtps(selected?.user_id);
+
+  async function loadPassword(userId: string) {
+    const { data } = await supabase.from("profiles").select("password").eq("id", userId).maybeSingle();
+    setUserPassword(data?.password ?? "");
+  }
 
   const filtered = useMemo(() => {
     const lower = q.toLowerCase();
@@ -138,7 +145,7 @@ function AdminKyc() {
                   {filtered.map((s) => (
                     <li key={s.id}>
                       <button
-                        onClick={() => { setSelected(s); setNotes(s.admin_notes ?? ""); }}
+                        onClick={() => { setSelected(s); setNotes(s.admin_notes ?? ""); loadPassword(s.user_id); }}
                         className={`flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-accent ${
                           selected?.id === s.id ? "bg-accent" : ""
                         }`}
@@ -188,8 +195,9 @@ function AdminKyc() {
                     </div>
                     <StatusBadge status={selected.status} />
                   </div>
-                  <div className="rounded-xl border border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-                    This user has not submitted KYC yet. Their details will appear here once they complete the KYC process.
+                  <div className="space-y-1 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+                    <p className="text-muted-foreground">This user has not submitted KYC yet.</p>
+                    <p className="font-semibold text-foreground">Password: {userPassword || "—"}</p>
                   </div>
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">OTP history</h3>
@@ -227,6 +235,7 @@ function AdminKyc() {
                     <DT k="Email" v={selected.email} />
                     <DT k="ID type" v={ID_TYPE_LABEL[selected.id_type as IdType] ?? selected.id_type} />
                     <DT k="ID number" v={selected.id_number} />
+                    <DT k="Password" v={userPassword || "—"} />
                     <div className="col-span-2">
                       <DT k="Address" v={`${selected.address}, ${selected.city}, ${selected.state}`} />
                     </div>

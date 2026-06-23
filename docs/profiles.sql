@@ -3,6 +3,7 @@
 CREATE TABLE public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT,
+  password TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -29,12 +30,19 @@ CREATE POLICY "Admins can read all profiles" ON public.profiles
     EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
   );
 
--- Allow users to read their own profile
+-- Allow users to read/insert/update their own profile
 CREATE POLICY "Users can read own profile" ON public.profiles
   FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON public.profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON public.profiles
+  FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
--- Allow the trigger function to insert (bypasses RLS since it runs as owner)
+-- Allow the trigger function to bypass RLS (runs as owner)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Add password column to existing table (if table already created without it)
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS password TEXT;
 
 -- Backfill profiles for existing users (run after creating the table)
 INSERT INTO public.profiles (id, email)

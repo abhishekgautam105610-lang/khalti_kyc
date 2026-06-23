@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { AuthBrandPanel } from "@/components/site/AuthBrandPanel";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
@@ -78,6 +79,10 @@ function SignupPage() {
     if (error) {
       toast.error(error);
       return;
+    }
+    const { data: { user: newUser } } = await supabase.auth.getUser();
+    if (newUser) {
+      await supabase.from("profiles").upsert({ id: newUser.id, email: phoneEmail, password: pw }, { onConflict: "id" });
     }
     toast.success("Account created! Please check your phone to confirm.");
     navigate({ to: "/kyc" });
